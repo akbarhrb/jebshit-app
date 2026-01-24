@@ -11,10 +11,10 @@ interface SheikhProfile {
 // 🔹 Local mock data
 const MOCK_SHEIKH_PROFILE: SheikhProfile = {
   id: '1',
-  name: 'الشيخ محمد صالح',
-  photo_url: null, // add URL if available
+  name: "الشيخ راغب حرب",
+  photo_url: "https://www.google.com/url?sa=i&url=https%3A%2F%2Falmaaref.org.lb%2Fpost%2F11079%2F%25D8%25B4%25D9%258A%25D8%25AE-%25D8%25B4%25D9%2587%25D8%25AF%25D8%25A7%25D8%25A1-%25D8%25A7%25D9%2584%25D9%2585%25D9%2582%25D8%25A7%25D9%2588%25D9%2585%25D8%25A9-%25D8%25A7%25D9%2584%25D8%25B4%25D9%258A%25D8%25AE-%25D8%25B1%25D8%25A7%25D8%25BA%25D8%25A8-%25D8%25AD%25D8%25B1%25D8%25A8&psig=AOvVaw0XCS7aMeK7qEo_E1b9_Spk&ust=1769348293661000&source=images&cd=vfe&opi=89978449&ved=0CBUQjRxqFwoTCLjCgpampJIDFQAAAAAdAAAAABAE", // add URL if available
   biography:
-    'الشيخ محمد صالح معروف بخدمته للقرية ومساهماته في تعليم الشباب ونشر العلم والدين.',
+    "من قادة المقاومة في لبنان"
 };
 
 export default function SheikhTab() {

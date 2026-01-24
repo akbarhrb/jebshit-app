@@ -1,19 +1,72 @@
 import { View, ScrollView, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { ChevronLeft, AlertCircle } from 'lucide-react-native';
-import { newsData } from '@/data/news';
+import { useEffect, useState } from 'react';
+import { collection, getDocs, query, orderBy } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
+
+interface NewsItem {
+  id: string;
+  title: string;
+  date: string;
+  description: string;
+  content: string;
+  isUrgent: boolean;
+}
 
 export default function NewsList() {
   const router = useRouter();
 
-  const urgentNews = newsData.filter((item) => item.isUrgent);
-  const announcements = newsData.filter((item) => !item.isUrgent);
+  const [news, setNews] = useState<NewsItem[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const renderNewsItem = (item: typeof newsData[0], isUrgent: boolean = false) => (
+  useEffect(() => {
+    
+    const fetchNews = async () => {
+      try {
+        setLoading(true);
+        const q = query(
+          collection(db, 'news'),
+          orderBy('isUrgent', 'desc')
+        );
+
+        const snapshot = await getDocs(q);
+
+        const data: NewsItem[] = snapshot.docs.map(doc => {
+        const raw = doc.data() as any;
+
+        return {
+          id: doc.id,
+          title: raw.title,
+          description: raw.description,
+          content: raw.content,
+          isUrgent: raw.isUrgent,
+          date: raw.date?.toDate
+            ? raw.date.toDate().toLocaleDateString('ar-EG')
+            : '',
+        };
+      });
+      
+        setNews(data);
+      } catch (error) {
+        console.error('Error fetching news:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchNews();
+  }, []);
+
+  const urgentNews = news.filter(item => item.isUrgent);
+  const announcements = news.filter(item => !item.isUrgent);
+
+  const renderNewsItem = (item: NewsItem, isUrgent = false) => (
     <TouchableOpacity
       key={item.id}
       onPress={() => router.push(`/(tabs)/(news)/${item.id}`)}
-      style={[styles.newsItem, isUrgent && styles.urgentNewsItem]}>
+      style={[styles.newsItem, isUrgent && styles.urgentNewsItem]}
+    >
       <View style={styles.newsItemContent}>
         <Text style={styles.newsTitle}>{item.title}</Text>
         <Text style={styles.newsDate}>{item.date}</Text>
@@ -21,16 +74,31 @@ export default function NewsList() {
           {item.description}
         </Text>
       </View>
-      {isUrgent && <AlertCircle size={20} color="#d32f2f" style={styles.urgentIcon} />}
-      {!isUrgent && <ChevronLeft size={20} color="#666" style={styles.chevron} />}
+
+      {isUrgent ? (
+        <AlertCircle size={20} color="#d32f2f" style={styles.urgentIcon} />
+      ) : (
+        <ChevronLeft size={20} color="#666" style={styles.chevron} />
+      )}
     </TouchableOpacity>
   );
+
+  if (loading) {
+    return (
+      <View style={styles.container}>
+        <Text style={{ textAlign: 'center', marginTop: 20 }}>
+          جاري تحميل الأخبار...
+        </Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>الأخبار</Text>
       </View>
+
       <ScrollView style={styles.list} showsVerticalScrollIndicator={false}>
         {urgentNews.length > 0 && (
           <View style={styles.section}>
@@ -38,7 +106,7 @@ export default function NewsList() {
               <Text style={styles.sectionTitle}>الأخبار العاجلة</Text>
             </View>
             <View style={styles.sectionContent}>
-              {urgentNews.map((item) => renderNewsItem(item, true))}
+              {urgentNews.map(item => renderNewsItem(item, true))}
             </View>
           </View>
         )}
@@ -49,7 +117,7 @@ export default function NewsList() {
               <Text style={styles.sectionTitle}>التبليغات والأنشطة</Text>
             </View>
             <View style={styles.sectionContent}>
-              {announcements.map((item) => renderNewsItem(item, false))}
+              {announcements.map(item => renderNewsItem(item))}
             </View>
           </View>
         )}
@@ -61,89 +129,65 @@ export default function NewsList() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#fff',
   },
   header: {
-    backgroundColor: '#fff',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
+    padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
-    marginTop: 0,
+    borderBottomColor: '#eee',
   },
   headerTitle: {
-    fontSize: 28,
-    fontFamily: 'Cairo-Bold',
-    color: '#333',
-    textAlign: 'right',
+    fontSize: 20,
+    fontWeight: 'bold',
+    textAlign: 'center',
   },
   list: {
-    flex: 1,
-    padding: 12,
+    paddingHorizontal: 16,
   },
   section: {
-    marginBottom: 20,
+    marginTop: 20,
   },
   sectionHeader: {
-    paddingHorizontal: 12,
-    paddingVertical: 12,
     marginBottom: 8,
-    borderRightWidth: 4,
-    borderRightColor: '#333',
   },
   sectionTitle: {
-    fontSize: 18,
-    fontFamily: 'Cairo-Bold',
-    color: '#333',
-    textAlign: 'right',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
   sectionContent: {
-    gap: 12,
+    gap: 10,
   },
   newsItem: {
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    padding: 16,
     flexDirection: 'row',
     alignItems: 'center',
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    padding: 14,
+    borderRadius: 10,
+    backgroundColor: '#f9f9f9',
   },
   urgentNewsItem: {
-    backgroundColor: '#fff3e0',
-    borderLeftWidth: 4,
-    borderLeftColor: '#d32f2f',
-    borderRightWidth: 0,
+    backgroundColor: '#fdecea',
   },
   newsItemContent: {
     flex: 1,
-    marginRight: 12,
   },
   newsTitle: {
-    fontSize: 16,
-    fontFamily: 'Cairo-Bold',
-    color: '#333',
-    marginBottom: 6,
-    textAlign: 'right',
+    fontSize: 15,
+    fontWeight: 'bold',
+    marginBottom: 4,
   },
   newsDate: {
     fontSize: 12,
-    fontFamily: 'Cairo-Regular',
-    color: '#999',
-    marginBottom: 8,
-    textAlign: 'right',
+    color: '#777',
+    marginBottom: 6,
   },
   newsDescription: {
-    fontSize: 14,
-    fontFamily: 'Cairo-Regular',
-    color: '#666',
-    lineHeight: 20,
-    textAlign: 'right',
+    fontSize: 13,
+    color: '#555',
   },
   chevron: {
-    marginLeft: 8,
+    marginLeft: 10,
   },
   urgentIcon: {
-    marginLeft: 8,
+    marginLeft: 10,
   },
 });

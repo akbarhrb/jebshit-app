@@ -1,5 +1,7 @@
 import { View, Text, StyleSheet, FlatList, ActivityIndicator, Image } from 'react-native';
 import { useEffect, useState } from 'react';
+import { collection, getDocs, query, orderBy } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 
 interface Martyr {
   id: string;
@@ -9,50 +11,50 @@ interface Martyr {
   biography: string;
 }
 
-// 🔹 Local mock data (replace or expand anytime)
-const MOCK_MARTYRS: Martyr[] = [
-  {
-    id: '1',
-    name: 'الشهيد أحمد محمد',
-    photo_url: null,
-    date_of_martyrdom: '2022-05-14',
-    biography: 'أحد أبناء القرية، عُرف بأخلاقه الطيبة وشجاعته.'
-  },
-  {
-    id: '2',
-    name: 'الشهيد علي حسن',
-    photo_url: null,
-    date_of_martyrdom: '2021-11-03',
-    biography: 'قدّم روحه فداءً للوطن، وسيبقى ذكره خالداً.'
-  }
-];
-
 export default function MartyrsTab() {
   const [martyrs, setMartyrs] = useState<Martyr[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Simulate loading
-    setTimeout(() => {
-      setMartyrs(
-        [...MOCK_MARTYRS].sort(
-          (a, b) =>
-            new Date(b.date_of_martyrdom).getTime() -
-            new Date(a.date_of_martyrdom).getTime()
-        )
-      );
-      setLoading(false);
-    }, 800);
+    const fetchMartyrs = async () => {
+      try {
+        setLoading(true);
+        const q = query(
+          collection(db, 'martyrs'),
+          orderBy('date_of_martyrdom', 'desc')
+        );
+
+        const snapshot = await getDocs(q);
+
+        const data: Martyr[] = snapshot.docs.map(doc => {
+          const raw = doc.data() as any;
+
+          return {
+            id: doc.id,
+            name: raw.name,
+            photo_url: raw.photo_url ?? null,
+            biography: raw.biography,
+            date_of_martyrdom: raw.date_of_martyrdom?.toDate
+              ? raw.date_of_martyrdom.toDate().toLocaleDateString('ar-EG', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                })
+              : '',
+          };
+        });
+
+        setMartyrs(data);
+      } catch (error) {
+        console.error('Error fetching martyrs:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMartyrs();
   }, []);
 
-  function formatDate(dateString: string) {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('ar-EG', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    });
-  }
 
   if (loading) {
     return (
@@ -89,7 +91,7 @@ export default function MartyrsTab() {
             <View style={styles.martyrInfo}>
               <Text style={styles.martyrName}>{item.name}</Text>
               <Text style={styles.martyrDate}>
-                {formatDate(item.date_of_martyrdom)}
+                {item.date_of_martyrdom}
               </Text>
               <Text style={styles.martyrBio} numberOfLines={3}>
                 {item.biography}
