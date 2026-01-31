@@ -15,46 +15,49 @@ export default function MartyrsTab() {
   const [martyrs, setMartyrs] = useState<Martyr[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchMartyrs = async () => {
-      try {
-        setLoading(true);
-        const q = query(
-          collection(db, 'martyrs'),
-          orderBy('date_of_martyrdom', 'desc')
-        );
+  const fetchMartyrs = async () => {
+    try {
+      setLoading(true);
 
-        const snapshot = await getDocs(q);
+      const q = query(
+        collection(db, 'martyrs'),
+        orderBy('dateOfMartyrdom', 'desc')
+      );
 
-        const data: Martyr[] = snapshot.docs.map(doc => {
-          const raw = doc.data() as any;
+      const snapshot = await getDocs(q);
 
-          return {
-            id: doc.id,
-            name: raw.name,
-            photo_url: raw.photo_url ?? null,
-            biography: raw.biography,
-            date_of_martyrdom: raw.date_of_martyrdom?.toDate
-              ? raw.date_of_martyrdom.toDate().toLocaleDateString('ar-EG', {
+      console.log('Docs count:', snapshot.size);
+
+      const data: Martyr[] = snapshot.docs.map(doc => {
+        const raw = doc.data();
+
+        return {
+          id: doc.id,
+          name: raw.name ?? '',
+          photo_url: raw.photo ?? null,
+          biography: raw.biography ?? '',
+          date_of_martyrdom: raw.dateOfMartyrdom
+            ? raw.dateOfMartyrdom
+                .toDate()
+                .toLocaleDateString('ar-EG', {
                   year: 'numeric',
                   month: 'long',
                   day: 'numeric',
                 })
-              : '',
-          };
-        });
+            : '',
+        };
+      });
 
-        setMartyrs(data);
-      } catch (error) {
-        console.error('Error fetching martyrs:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
+      setMartyrs(data);
+    } catch (error) {
+      console.error('Error fetching martyrs:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  useEffect(() => {
     fetchMartyrs();
   }, []);
-
 
   if (loading) {
     return (
