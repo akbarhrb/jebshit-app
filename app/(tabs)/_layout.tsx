@@ -1,4 +1,4 @@
-import { Tabs } from 'expo-router';
+import { Stack, Tabs } from 'expo-router';
 import { Newspaper, Users, BookOpen } from 'lucide-react-native';
 
 export default function TabLayout() {
@@ -6,33 +6,28 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarLabelStyle: {
-          fontFamily: 'Cairo-Bold',
-        },
-      }}>
+        tabBarLabelStyle: { fontFamily: 'Cairo-Bold' },
+      }}
+    >
       <Tabs.Screen
-        name="index"
+        name="news"
         options={{
-          title: 'الأخبار',
-          tabBarIcon: ({ size, color }) => (
-            <Newspaper size={size} color={color} />
-          ),
+          tabBarLabel: 'الأخبار',
+          tabBarIcon: ({ size, color }) => <Newspaper size={size} color={color} />,
         }}
       />
       <Tabs.Screen
         name="martyrs"
         options={{
-          title: 'الشهداء',
+          tabBarLabel: 'الشهداء',
           tabBarIcon: ({ size, color }) => <Users size={size} color={color} />,
         }}
       />
       <Tabs.Screen
         name="sheikh"
         options={{
-          title: 'الشيخ راغب حرب',
-          tabBarIcon: ({ size, color }) => (
-            <BookOpen size={size} color={color} />
-          ),
+          tabBarLabel: 'الشيخ راغب حرب',
+          tabBarIcon: ({ size, color }) => <BookOpen size={size} color={color} />,
         }}
       />
     </Tabs>

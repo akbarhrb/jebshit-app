@@ -1,9 +1,13 @@
 import { View, ScrollView, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
-import { ChevronLeft, AlertCircle } from 'lucide-react-native';
-import { useEffect, useState } from 'react';
-import { collection, getDocs, query, orderBy } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import React, { useEffect, useState } from 'react';
+import News from '../(news)/components/news';
+import MosqueActivities from '../(news)/components/activities';
+import ReligiousTopics from '../(news)/components/topics';
+import Memories from '../(news)/components/memories';
+import Jobs from '../(news)/components/jobs';
+
+
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 interface NewsItem {
@@ -18,101 +22,21 @@ interface NewsItem {
 
 export default function NewsList() {
   const router = useRouter();
-
-  const [news, setNews] = useState<NewsItem[]>([]);
-  const [loading, setLoading] = useState(true);
-
   const [selectedCategory, setSelectedCategory] = useState('News');
 
   const categories = [
     { key: 'News', label: '📰 الأخبار' },
     { key: 'Mosque', label: '🕌 الأنشطة المسجدية' },
     { key: 'Religious', label: '📚 المواضيع الدينية' },
-    { key: 'Village', label: '🕰️ ذكريات القرية' },
+    { key: 'Memories', label: '🕰️ ذكريات القرية' },
     { key: 'Jobs', label: '💼 الوظائف' },
   ];
-
-  const categoryCollections: Record<string, string> = {
-    News: 'news',
-    Mosque: 'activities',
-    Religious: 'topics',
-    Village: 'memories',
-    Jobs: 'jobs',
-  };
-
-  useEffect(() => {
-    const fetchCategoryNews = async () => {
-      try {
-        setLoading(true);
-        const collectionName = categoryCollections[selectedCategory] || 'news';
-        const q = query(collection(db, collectionName), orderBy('date' , 'desc'));
-
-        const snapshot = await getDocs(q);
-
-        const data: NewsItem[] = snapshot.docs.map(doc => {
-          const raw = doc.data() as any;
-          return {
-            id: doc.id,
-            title: raw.title,
-            description: raw.description,
-            content: raw.content,
-            isUrgent: raw.isUrgent,
-            category: selectedCategory,
-            date: raw.date?.toDate ? raw.date.toDate().toLocaleDateString('ar-EG') : '',
-          };
-        });
-
-        setNews(data);
-      } catch (error) {
-        console.error('Error fetching news:', error);
-        setNews([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchCategoryNews();
-  }, [selectedCategory]);
-
-  const urgentNews = news.filter(item => item.isUrgent);
-  const announcements = news.filter(item => !item.isUrgent);
-
-  const renderNewsItem = (item: NewsItem, isUrgent = false) => (
-    <TouchableOpacity
-      key={item.id}
-      activeOpacity={0.7}
-      onPress={() => router.push(`/(tabs)/(news)/${item.id}`)}
-      style={[styles.newsItem, isUrgent && styles.urgentNewsItem]}
-    >
-      <View style={styles.newsItemContent}>
-        <Text style={styles.newsTitle}>{item.title}</Text>
-        <Text style={styles.newsDate}>{item.date || 'تاريخ غير متوفر'}</Text>
-        <Text style={styles.newsDescription} numberOfLines={2}>
-          {item.description}
-        </Text>
-      </View>
-      {isUrgent ? (
-        <AlertCircle size={20} color="#d32f2f" style={styles.urgentIcon} />
-      ) : (
-        <ChevronLeft size={20} color="#666" style={styles.chevron} />
-      )}
-    </TouchableOpacity>
-  );
-
-  if (loading) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <ActivityIndicator size="large" color="#2e7d32" style={{ marginTop: 20 }} />
-        <Text style={{ textAlign: 'center', marginTop: 10 }}>جاري تحميل الأخبار...</Text>
-      </SafeAreaView>
-    );
-  }
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>الأخبار</Text>
+        <Text style={styles.headerTitle}>اخر الأخبار</Text>
       </View>
 
       {/* Categories */}
@@ -123,6 +47,7 @@ export default function NewsList() {
           contentContainerStyle={styles.categoryContainer}
           keyboardShouldPersistTaps="handled"
           nestedScrollEnabled={true}
+ 
         >
           {categories.map(cat => (
             <TouchableOpacity
@@ -147,46 +72,18 @@ export default function NewsList() {
         </ScrollView>
       </View>
 
-      {/* News List */}
-      {
-        news.length === 0 ? (
-          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-            <Text>لا توجد أخبار في هذا القسم.</Text>
-          </View>
-        ) : 
-      
-        <ScrollView
-          style={{ flex: 1 }}
-          contentContainerStyle={{ paddingBottom: 20 }}
-          keyboardShouldPersistTaps="handled"
-          nestedScrollEnabled={true}
-        >
-          {urgentNews.length > 0 && (
-            <View style={styles.section}>
-              <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle}>الأخبار العاجلة</Text>
-              </View>
-              <View style={styles.sectionContent}>
-                {urgentNews.map(item => renderNewsItem(item, true))}
-              </View>
-            </View>
-          )}
-
-          {announcements.length > 0 && (
-            <View style={styles.section}>
-              <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle}>التبليغات والأنشطة</Text>
-              </View>
-              <View style={styles.sectionContent}>
-                {announcements.map(item => renderNewsItem(item))}
-              </View>
-            </View>
-          )}
-        </ScrollView>
-      }
+      {/* Render selected category */}
+      <View style={{ flex: 1 }}>
+        {selectedCategory === 'Memories' && <Memories />}
+        {selectedCategory === 'News' && <News />}
+        {selectedCategory === 'Mosque' && <MosqueActivities />}
+        {selectedCategory === 'Religious' && <ReligiousTopics />}
+        {selectedCategory === 'Jobs' && <Jobs />}
+      </View>
     </SafeAreaView>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },

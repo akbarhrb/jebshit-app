@@ -6,7 +6,10 @@ export default function NewsLayout() {
       screenOptions={{
         headerShown: false,
       }}>
-      <Stack.Screen name="index" />
+      <Stack.Screen
+        name="index"
+        options={{ title: 'الأخبار' }}
+      />
       <Stack.Screen name="[id]" />
     </Stack>
   );
