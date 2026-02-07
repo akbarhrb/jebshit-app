@@ -33,7 +33,7 @@ export default function NewsList() {
   ];
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={styles.container} edges={[]}>
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>اخر الأخبار</Text>
@@ -88,11 +88,30 @@ export default function NewsList() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
   header: {
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    backgroundColor: '#2c5f2d', // rich green
+    paddingHorizontal: 20,
+    paddingVertical: 24,
+    paddingTop: 60,
+    borderBottomLeftRadius: 16,
+    borderBottomRightRadius: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 5, // for Android shadow
   },
-  headerTitle: { fontSize: 20, fontWeight: 'bold', textAlign: 'center' },
+  headerTitle: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#fff',
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+  headerSubtitle: {
+    fontSize: 14,
+    color: '#e8f5e9',
+    textAlign: 'center',
+  },
 
   // Category
   categoryContainer: {

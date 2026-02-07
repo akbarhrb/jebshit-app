@@ -83,7 +83,7 @@ export default function News() {
     }
 
     return (
-        <SafeAreaView style={styles.container}>
+        <View style={styles.container}>
             {/* News List */}
             {
                 news.length === 0 ? (
@@ -120,7 +120,7 @@ export default function News() {
                         )}
                         </ScrollView>
             }
-        </SafeAreaView>  
+        </View>  
     );
 }
     
